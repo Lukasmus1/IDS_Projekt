@@ -31,14 +31,14 @@ CREATE TABLE "person"
     "id" INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
     "name" VARCHAR(100),
     "age" TINYINT,
-    "member_id" INT DEFAULT NULL,
+    "member_id" INT,
     CONSTRAINT "member_fk" FOREIGN KEY ("member_id") REFERENCES "member" ("id")--on delete něco (set null ?)
 );
 
 CREATE TABLE "territory"
 (
     "gps" VARCHAR(100) NOT NULL PRIMARY KEY,  
-    "area" DECIMAL(10, 2),
+    "area" DECIMAL(10, 5),
     "adress" VARCHAR(50),
     "owning_family" INT,
     CONSTRAINT "owning_family_fk" FOREIGN KEY ("owning_family") REFERENCES "family" ("id")--on delete něco
@@ -54,8 +54,8 @@ CREATE TABLE "family"
 CREATE TABLE "member"
 (
     "id" INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
-    "authorization" VARCHAR(100), -- Tady nevím
-    "shoe_size" TINYINT,
+    "authorization" VARCHAR(100),
+    "shoe_size" TINYINT, --Toto smazat, pokud don bude dědit z osoby
     "family_id" INT NOT NULL,
     CONSTRAINT "family_fk" FOREIGN KEY ("family_id") REFERENCES "family" ("id")--on delete něco
     --FK Kriminální operace je možná řešená tabulkou dole
@@ -104,8 +104,10 @@ CREATE TABLE "operation"
     "type" VARCHAR(100),
     "duration" DATE,
     --FK Území je možná řešené tabulkou dole
-    "owning_family" INT,
-    CONSTRAINT "owning_family_fk" FOREIGN KEY ("owning_family") REFERENCES "family" ("id")--on delete něco
+    "owning_family" INT NOT NULL,
+    CONSTRAINT "owning_family_fk" FOREIGN KEY ("owning_family") REFERENCES "family" ("id"),--on delete něco
+    "murder_id" VARCHAR(50),
+    CONSTRAINT "murder_fk" FOREIGN KEY ("murder_id") REFERENCES "murder" ("operation_name")
 );
 
 --propojovací tabulka
@@ -130,6 +132,6 @@ CREATE TABLE "murder"
 CREATE TABLE "order"
 (
     "id" INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
-    "murder_id" VARCHAR(50)
+    "murder_id" VARCHAR(50),
     CONSTRAINT "murder_fk" FOREIGN KEY ("murder_id") REFERENCES "murder" ("operation_name")
 );
