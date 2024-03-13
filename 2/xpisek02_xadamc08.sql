@@ -1,3 +1,7 @@
+--Naplnit daty
+--Použít alespoň jeden CHECK
+--Vysvětlit generalizaci (dělení)
+
 CREATE TABLE "don" --Možná by měl dědit ze člena
 (
     "id" INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
@@ -132,6 +136,22 @@ CREATE TABLE "murder"
 CREATE TABLE "order"
 (
     "id" INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
-    "murder_id" VARCHAR(50),
-    CONSTRAINT "murder_fk" FOREIGN KEY ("murder_id") REFERENCES "murder" ("operation_name")
+    "murder_name" VARCHAR(50),
+    CONSTRAINT "murder_fk" FOREIGN KEY ("murder_name") REFERENCES "murder" ("operation_name")
 );
+
+--=================================== NAPLNIT DATY =========================================
+--Něco jsem tu uvařil
+INSERT INTO "person" ("name", "age")
+VALUES ("Mr. GonnaDie :koteseni:", 50)
+
+INSERT INTO "murder" ("operation_name", "time_of_murder", "murder_weapon", "victim")
+VALUES ("Phoenix", TO_DATE("2024-12-12", "yyyy/mm/dd"), "Handgun", 1);
+
+INSERT INTO "order" ("murder_name")
+VALUES ("Phoenix");
+
+INSERT INTO "don" ("age", "shoe_size", "murder_order")
+VALUES (40, 45, NULL);
+INSERT INTO "don" ("age", "shoe_size", "murder_order")
+VALUES (51, 42, 1);
