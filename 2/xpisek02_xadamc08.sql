@@ -7,7 +7,7 @@ CREATE TABLE "don" --Možná by měl dědit ze člena
     "id" INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
     "age" TINYINT,
     "shoe_size" TINYINT,
-    "murder_order" INT DEFAULT NULL
+    "murder_order" INT DEFAULT NULL,
     CONSTRAINT "murder_order_fk" FOREIGN KEY ("murder_order") REFERENCES "order" ("id") --on delete něco
 );
 
@@ -77,7 +77,7 @@ CREATE TABLE "member_operation"
 
 CREATE TABLE "aliance"
 (
-    "id" INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
+    "id" INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY
     --FK Rodiny jsou možná řešené tabulkou dole
     --FK Kriminální operace je možná řešená tabulkou dole
 );
@@ -128,7 +128,7 @@ CREATE TABLE "murder"
 (
     "operation_name" VARCHAR(50) NOT NULL PRIMARY KEY,
     "time_of_murder" DATE,
-    "murder_weapon" VARCHAR(50)
+    "murder_weapon" VARCHAR(50),
     "victim" INT NOT NULL,
     CONSTRAINT "victim_fk" FOREIGN KEY ("victim") REFERENCES "person" ("id")
 );
@@ -141,9 +141,10 @@ CREATE TABLE "order"
 );
 
 --=================================== NAPLNIT DATY =========================================
+
 --Něco jsem tu uvařil
 INSERT INTO "person" ("name", "age")
-VALUES ("Mr. GonnaDie :koteseni:", 50)
+VALUES ("Mr. GonnaDie :koteseni:", 50);
 
 INSERT INTO "murder" ("operation_name", "time_of_murder", "murder_weapon", "victim")
 VALUES ("Phoenix", TO_DATE("2024-12-12", "yyyy/mm/dd"), "Handgun", 1);
