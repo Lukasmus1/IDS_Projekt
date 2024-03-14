@@ -2,172 +2,314 @@
 --Použít alespoň jeden CHECK
 --Vysvětlit generalizaci (dělení)
 
-CREATE TABLE don --Možná by měl dědit ze člena
-(
-    id INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
-    name VARCHAR(100),
-    age NUMBER(3),
-    shoe_size NUMBER(3),
-    murder_order INT DEFAULT NULL,
-    CONSTRAINT murder_order_fk FOREIGN KEY (murder_order) REFERENCES order_table (id) --on delete něco
+--=================================== DROP TABLE =========================================
+DROP TABLE MEMBER_OPERATION CASCADE CONSTRAINTS;
+
+DROP TABLE ALIANCE_OPERATION CASCADE CONSTRAINTS;
+
+DROP TABLE ALIANCE_FAMILY CASCADE CONSTRAINTS;
+
+DROP TABLE OPERATION_TERRITORY CASCADE CONSTRAINTS;
+
+DROP TABLE MEETING_ATTENDEE CASCADE CONSTRAINTS;
+
+DROP TABLE MEETING CASCADE CONSTRAINTS;
+
+DROP TABLE DON CASCADE CONSTRAINTS;
+
+DROP TABLE ORDER_TABLE CASCADE CONSTRAINTS;
+
+DROP TABLE MURDER CASCADE CONSTRAINTS;
+
+DROP TABLE MEMBER_TABLE CASCADE CONSTRAINTS;
+
+DROP TABLE TERRITORY CASCADE CONSTRAINTS;
+
+DROP TABLE FAMILY CASCADE CONSTRAINTS;
+
+DROP TABLE OPERATION CASCADE CONSTRAINTS;
+
+DROP TABLE PERSON CASCADE CONSTRAINTS;
+
+DROP TABLE ALIANCE CASCADE CONSTRAINTS;
+
+--=================================== CREATE TABLE =========================================
+
+CREATE TABLE PERSON (
+    ID INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
+    NAME VARCHAR(100),
+    AGE NUMBER(3)
 );
 
-CREATE TABLE meeting (
-    id INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
-    date DATE,
- --FK Účastníci jsou možná vyřešeni tabulkou dole
-    territory_id VARCHAR(100) NOT NULL,
-    CONSTRAINT territory_fk FOREIGN KEY (territory_id) REFERENCES territory (gps) --on delete něco
-);
-
-CREATE TABLE meeting_attendee (
-    meeting_id INT,
-    don_id INT NOT NULL,
-    PRIMARY KEY (meeting_id, don_id),
-    CONSTRAINT meeting_fk FOREIGN KEY (meeting_id) REFERENCES meeting (id), --on delete něco
-    CONSTRAINT don_fk FOREIGN KEY (don_id) REFERENCES don (id) --on delete něco
-);
-
-CREATE TABLE person (
-    id INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
-    name VARCHAR(100),
-    age NUMBER(3),
-);
-
-CREATE TABLE member (
-    id INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
-    authorization VARCHAR(100),
-    shoe_size NUMBER(3), --Toto smazat, pokud don bude dědit z osoby
-    family_id INT NOT NULL,
-    CONSTRAINT family_fk FOREIGN KEY (family_id) REFERENCES family (id), --on delete něco
-    FOREIGN KEY (id) REFERENCES person (id) --on delete něco
+CREATE TABLE MEMBER_TABLE (
+    ID INT NOT NULL PRIMARY KEY,
+    AUTHORIZATION VARCHAR(20) CHECK( AUTHORIZATION IN('Velkej čavo', 'Střední čavo', 'Malej čavo')),
+    SHOE_SIZE NUMBER(3), --Toto smazat, pokud don bude dědit z osoby
+    FAMILY_ID INT NOT NULL,
+    FOREIGN KEY (ID) REFERENCES PERSON (ID) --on delete něco
  --FK Kriminální operace je možná řešená tabulkou dole
 );
 
-CREATE TABLE territory (
-    gps VARCHAR(100) NOT NULL PRIMARY KEY CHECK (REGEXP_LIKE(gps, '^([1-8]?[1-9]|[1-9]0)\.{1}\d{1,6}[NS],\s?((([1]?[0-7]?|[1-9]?)[0-9])|([1]?[1-8][0])|([1]?[1-7][1-9])|([1]?[0-8][0])|([1-9]0))\.{1}\d{1,6}[EW]$')), --Not sure
-    area DECIMAL(10, 5),
-    adress VARCHAR(50),
-    owning_family INT,
-    CONSTRAINT owning_family_fk FOREIGN KEY (owning_family) REFERENCES family (id) --on delete něco
+CREATE TABLE FAMILY (
+    ID INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
+    DON_ID INT NOT NULL
 );
 
-CREATE TABLE family (
-    id INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
-    don_id INT NOT NULL,
-    CONSTRAINT don_fk FOREIGN KEY (don_id) REFERENCES don (id) --on delete něco
-);
-
-CREATE TABLE member_operation (
-    member_id INT,
-    operation_id INT,
-    PRIMARY KEY (member_id, operation_id),
-    CONSTRAINT member_fk FOREIGN KEY (member_id) REFERENCES member (id), --on delete něco
-    CONSTRAINT operation_fk FOREIGN KEY (operation_id) REFERENCES operation (id) --on delete něco
-);
-
-CREATE TABLE aliance (
-    id INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY
- --FK Rodiny jsou možná řešené tabulkou dole
- --FK Kriminální operace je možná řešená tabulkou dole
-);
-
---propojovací tabulka
-CREATE TABLE aliance_operation (
-    aliance_id INT,
-    operation_id INT,
-    PRIMARY KEY (aliance_id, operation_id),
-    CONSTRAINT aliance_fk FOREIGN KEY (aliance_id) REFERENCES aliance (id), --on delete něco
-    CONSTRAINT operation_fk FOREIGN KEY (operation_id) REFERENCES operation (id) --on delete něco
-);
-
---propojovací tabulka
-CREATE TABLE aliance_family (
-    aliance_id INT,
-    family_id INT NOT NULL,
-    PRIMARY KEY (aliance_id, family_id),
-    CONSTRAINT aliance_fk FOREIGN KEY (aliance_id) REFERENCES aliance (id), --on delete něco
-    CONSTRAINT family_fk FOREIGN KEY (family_id) REFERENCES family (id) --on delete něco
-);
-
-CREATE TABLE operation (
-    operation_name VARCHAR(50) NOT NULL PRIMARY KEY,
-    type VARCHAR(100),
-    duration DATE,
+CREATE TABLE OPERATION (
+    OPERATION_NAME VARCHAR(50) NOT NULL PRIMARY KEY,
+    OP_TYPE VARCHAR(100),
+    OP_DATE_START DATE,
+    OP_DATE_FINISH DATE,
  --FK Území je možná řešené tabulkou dole
-    owning_family INT NOT NULL,
-    CONSTRAINT owning_family_fk FOREIGN KEY (owning_family) REFERENCES family (id), --on delete něco
+    OWNING_FAMILY INT NOT NULL
 );
 
---propojovací tabulka
-CREATE TABLE operation_territory (
-    operation_name VARCHAR(50) NOT NULL,
-    territory_id VARCHAR(100) NOT NULL,
-    PRIMARY KEY (operation_id, territory_id),
-    CONSTRAINT operation_fk FOREIGN KEY (operation_id) REFERENCES operation (operation_name), --on delete něco
-    CONSTRAINT territory_fk FOREIGN KEY (territory_id) REFERENCES territory (gps) --on delete něco
+CREATE TABLE MURDER (
+    MURDER_NAME VARCHAR(50) NOT NULL PRIMARY KEY,
+ -- TIME_OF_MURDER DATE, nepouzivame protoze to ma operace
+    MURDER_WEAPON VARCHAR(50),
+    VICTIM INT NOT NULL,
+    FOREIGN KEY (MURDER_NAME) REFERENCES OPERATION (OPERATION_NAME)
 );
 
-CREATE TABLE murder (
-    murder_name VARCHAR(50) NOT NULL PRIMARY KEY,
-    time_of_murder DATE,
-    murder_weapon VARCHAR(50),
-    victim INT NOT NULL,
-    CONSTRAINT victim_fk FOREIGN KEY (victim) REFERENCES person (id),
-    FOREIGN KEY (murder_name) REFERENCES operation (operation_name)
+CREATE TABLE ORDER_TABLE (
+    ID INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
+    ORDER_NAME VARCHAR(50),
+    VICTIM INT,
+    MURDER VARCHAR(50)
 );
 
-CREATE TABLE order_table (
-    id INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
-    order_name VARCHAR(50),
-    CONSTRAINT murder_fk FOREIGN KEY (order_name) REFERENCES murder (murder_name)
+CREATE TABLE DON (
+    ID INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
+    NAME VARCHAR(100),
+    AGE NUMBER(3),
+    SHOE_SIZE NUMBER(3),
+    MURDER_ORDER INT DEFAULT NULL
 );
+
+CREATE TABLE MEETING (
+    ID INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
+    MEET_DATE DATE,
+ --FK Účastníci jsou možná vyřešeni tabulkou dole
+    TERRITORY_ID VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE TERRITORY (
+    GPS VARCHAR(100) NOT NULL PRIMARY KEY CHECK (REGEXP_LIKE(GPS, '^([1-8]?[1-9]|[1-9]0)\.{1}\d{1,6}[NS],\s?((([1]?[0-7]?|[1-9]?)[0-9])|([1]?[1-8][0])|([1]?[1-7][1-9])|([1]?[0-8][0])|([1-9]0))\.{1}\d{1,6}[EW]$')), --Not sure
+    AREA DECIMAL(10, 5),
+    --ADRESS VARCHAR(50) redundantní
+    OWNING_FAMILY INT
+);
+
+CREATE TABLE ALIANCE (
+    ID INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY
+ --FK Rodiny jsou možná řešené tabulkou dole
+ --FK Kriminální operace je možná řešená tabulkou dole'
+);
+
+--=================================== Propojovací tabulky =========================================
+
+CREATE TABLE MEETING_ATTENDEE (
+    MEETING_ID INT,
+    DON_ID INT NOT NULL,
+    PRIMARY KEY (MEETING_ID, DON_ID),
+    CONSTRAINT MEETING_FK FOREIGN KEY (MEETING_ID) REFERENCES MEETING (ID), --on delete něco
+    CONSTRAINT DON_FK FOREIGN KEY (DON_ID) REFERENCES DON (ID) --on delete něco
+);
+
+CREATE TABLE MEMBER_OPERATION (
+    MEMBER_ID INT,
+    OPERATION_NAME VARCHAR(50) NOT NULL,
+    PRIMARY KEY (MEMBER_ID, OPERATION_NAME),
+    CONSTRAINT MEMBER_FK FOREIGN KEY (MEMBER_ID) REFERENCES MEMBER_TABLE (ID), --on delete něco
+    CONSTRAINT OPERATION_FK FOREIGN KEY (OPERATION_NAME) REFERENCES OPERATION (OPERATION_NAME) --on delete něco
+);
+
+CREATE TABLE ALIANCE_OPERATION (
+    ALIANCE_ID INT,
+    OPERATION_NAME VARCHAR(50) NOT NULL,
+    PRIMARY KEY (ALIANCE_ID, OPERATION_NAME),
+    CONSTRAINT ALIANCE_FK FOREIGN KEY (ALIANCE_ID) REFERENCES ALIANCE (ID), --on delete něco
+    CONSTRAINT OPERATION_FK_ALI_OP FOREIGN KEY (OPERATION_NAME) REFERENCES OPERATION (OPERATION_NAME) --on delete něco
+);
+
+CREATE TABLE ALIANCE_FAMILY (
+    ALIANCE_ID INT,
+    FAMILY_ID INT NOT NULL,
+    PRIMARY KEY (ALIANCE_ID, FAMILY_ID),
+    CONSTRAINT ALIANCE_FK_ALI_FAM FOREIGN KEY (ALIANCE_ID) REFERENCES ALIANCE (ID), --on delete něco
+    CONSTRAINT FAMILY_FK FOREIGN KEY (FAMILY_ID) REFERENCES FAMILY (ID) --on delete něco
+);
+
+CREATE TABLE OPERATION_TERRITORY (
+    OPERATION_NAME VARCHAR(50) NOT NULL,
+    TERRITORY_ID VARCHAR(100) NOT NULL,
+    PRIMARY KEY (OPERATION_NAME, TERRITORY_ID),
+    CONSTRAINT OPERATION_FK_OP_TER FOREIGN KEY (OPERATION_NAME) REFERENCES OPERATION (OPERATION_NAME), --on delete něco
+    CONSTRAINT TERRITORY_FK FOREIGN KEY (TERRITORY_ID) REFERENCES TERRITORY (GPS) --on delete něco
+);
+
+--=================================== ALTER TABLE =========================================
+--ON DELETE NĚCO
+
+ALTER TABLE MEMBER_TABLE ADD CONSTRAINT FAMILY_FK_MEM_TAB FOREIGN KEY (FAMILY_ID) REFERENCES FAMILY (ID);
+
+ALTER TABLE FAMILY ADD CONSTRAINT DON_FK_FAM FOREIGN KEY (DON_ID) REFERENCES DON (ID);
+
+ALTER TABLE OPERATION ADD CONSTRAINT OWNING_FAMILY_FK_OP FOREIGN KEY (OWNING_FAMILY) REFERENCES FAMILY (ID);
+
+ALTER TABLE MURDER ADD CONSTRAINT VICTIM_FK FOREIGN KEY (VICTIM) REFERENCES PERSON (ID);
+
+ALTER TABLE ORDER_TABLE ADD CONSTRAINT VICTIM_FK_ORD_TAB FOREIGN KEY (VICTIM) REFERENCES PERSON (ID) ADD CONSTRAINT MURDER_FK FOREIGN KEY (MURDER) REFERENCES MURDER (MURDER_NAME);
+
+ALTER TABLE DON ADD CONSTRAINT MURDER_ORDER_FK FOREIGN KEY (MURDER_ORDER) REFERENCES ORDER_TABLE (ID);
+
+ALTER TABLE MEETING ADD CONSTRAINT TERRITORY_FK_MEET FOREIGN KEY (TERRITORY_ID) REFERENCES TERRITORY (GPS);
+
+ALTER TABLE TERRITORY ADD CONSTRAINT OWNING_FAMILY_FK_TER FOREIGN KEY (OWNING_FAMILY) REFERENCES FAMILY (ID);
 
 --=================================== NAPLNIT DATY =========================================
 
---Něco jsem tu uvařil
-INSERT INTO person (
-    name,
-    age
+INSERT INTO PERSON (
+    NAME,
+    AGE
 ) VALUES (
-    "Mr. GonnaDie :koteseni:",
+    'Mr. GonnaDie :koteseni:',
     50
 );
 
-INSERT INTO murder (
-    operation_name,
-    time_of_murder,
-    murder_weapon,
-    victim
+INSERT INTO PERSON (
+    NAME,
+    AGE
 ) VALUES (
-    "Phoenix",
-    TO_DATE("2024-12-12", "yyyy/mm/dd"),
-    "Handgun",
+    'Mr. Member',
+    40
+);
+
+INSERT INTO DON (
+    NAME,
+    AGE,
+    SHOE_SIZE
+) VALUES (
+    'Velkej Boss',
+    45,
+    48
+);
+
+INSERT INTO DON (
+    NAME,
+    AGE,
+    SHOE_SIZE
+) VALUES (
+    'Velkej Meeting Boss',
+    50,
+    45
+);
+
+INSERT INTO ORDER_TABLE (
+    ORDER_NAME,
+    VICTIM
+) VALUES (
+    'Phoenix',
     1
 );
 
-INSERT INTO order_table (
-    murder_name
+INSERT INTO FAMILY(
+    DON_ID
 ) VALUES (
-    "Phoenix"
+    1
 );
 
-INSERT INTO don (
-    age,
-    shoe_size,
-    murder_order_table
-) VALUES (
-    40,
-    45,
-    NULL
-);
-
-INSERT INTO don (
-    age,
-    shoe_size,
-    murder_order_table
-) VALUES (
-    51,
+INSERT INTO MEMBER_TABLE(
+    ID,
+    AUTHORIZATION,
+    SHOE_SIZE,
+    FAMILY_ID
+) VALUES(
+    2,
+    'Velkej čavo',
     42,
     1
 );
+
+INSERT INTO OPERATION(
+    OPERATION_NAME,
+    OP_TYPE,
+    OP_DATE_START,
+    OP_DATE_FINISH,
+    OWNING_FAMILY
+) VALUES(
+    'Vaření pervitinu',
+    'Narkotika',
+    TO_DATE('2024-02-08', 'YYYY-MM-DD'),
+    TO_DATE('2024-05-08', 'YYYY-MM-DD'),
+    1
+);
+
+INSERT INTO OPERATION(
+    OPERATION_NAME,
+    OP_TYPE,
+    OP_DATE_START,
+    OP_DATE_FINISH,
+    OWNING_FAMILY
+) VALUES(
+    'Vražda 123',
+    'Vražda',
+    TO_DATE('2024-05-08', 'YYYY-MM-DD'),
+    TO_DATE('2024-06-08', 'YYYY-MM-DD'),
+    1
+);
+
+INSERT INTO MURDER(
+    MURDER_NAME,
+ --Tady by měla být time_of_murder ale nepotřebujem ji, protože je v operation
+    MURDER_WEAPON,
+    VICTIM
+) VALUES(
+    'Vražda 123',
+    'Nůž',
+    1
+);
+
+INSERT INTO TERRITORY(
+    GPS,
+    AREA,
+    OWNING_FAMILY
+)
+VALUES(
+    '50.149N, 40.5E',
+    50.44,
+    1
+);
+
+INSERT INTO MEETING(
+    MEET_DATE,
+    TERRITORY_ID
+)
+VALUES
+(
+    TO_DATE('2024-07-15', 'YYYY/MM/DD'),
+    '50.149N, 40.5E'
+);
+
+INSERT INTO MEETING_ATTENDEE(
+    MEETING_ID,
+    DON_ID
+)
+VALUES
+(
+    1,
+    1
+);
+
+INSERT INTO MEETING_ATTENDEE(
+    MEETING_ID,
+    DON_ID
+)
+VALUES
+(
+    1,
+    2
+);
+
+--Chybí vše od meeting attendee
