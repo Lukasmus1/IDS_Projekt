@@ -1,5 +1,3 @@
---Naplnit daty
---Použít alespoň jeden CHECK
 --Vysvětlit generalizaci (dělení)
 
 --=================================== DROP TABLE =========================================
@@ -97,7 +95,7 @@ CREATE TABLE MEETING (
 CREATE TABLE TERRITORY (
     GPS VARCHAR(100) NOT NULL PRIMARY KEY CHECK (REGEXP_LIKE(GPS, '^([1-8]?[1-9]|[1-9]0)\.{1}\d{1,6}[NS],\s?((([1]?[0-7]?|[1-9]?)[0-9])|([1]?[1-8][0])|([1]?[1-7][1-9])|([1]?[0-8][0])|([1-9]0))\.{1}\d{1,6}[EW]$')), --Not sure
     AREA DECIMAL(10, 5),
-    --ADRESS VARCHAR(50) redundantní
+ --ADRESS VARCHAR(50) redundantní
     OWNING_FAMILY INT
 );
 
@@ -275,8 +273,7 @@ INSERT INTO TERRITORY(
     GPS,
     AREA,
     OWNING_FAMILY
-)
-VALUES(
+) VALUES(
     '50.149N, 40.5E',
     50.44,
     1
@@ -285,9 +282,7 @@ VALUES(
 INSERT INTO MEETING(
     MEET_DATE,
     TERRITORY_ID
-)
-VALUES
-(
+) VALUES (
     TO_DATE('2024-07-15', 'YYYY/MM/DD'),
     '50.149N, 40.5E'
 );
@@ -295,9 +290,7 @@ VALUES
 INSERT INTO MEETING_ATTENDEE(
     MEETING_ID,
     DON_ID
-)
-VALUES
-(
+) VALUES (
     1,
     1
 );
@@ -305,11 +298,43 @@ VALUES
 INSERT INTO MEETING_ATTENDEE(
     MEETING_ID,
     DON_ID
-)
-VALUES
-(
+) VALUES (
     1,
     2
 );
 
---Chybí vše od meeting attendee
+INSERT INTO MEMBER_OPERATION(
+    MEMBER_ID,
+    OPERATION_NAME
+) VALUES (
+    2,
+    'Vaření pervitinu'
+);
+
+INSERT INTO ALIANCE VALUES (
+    DEFAULT
+);
+
+INSERT INTO ALIANCE_OPERATION(
+    ALIANCE_ID,
+    OPERATION_NAME
+) VALUES (
+    1,
+    'Vaření pervitinu'
+);
+
+INSERT INTO ALIANCE_FAMILY(
+    ALIANCE_ID,
+    FAMILY_ID
+) VALUES (
+    1,
+    1
+);
+
+INSERT INTO OPERATION_TERRITORY(
+    OPERATION_NAME,
+    TERRITORY_ID
+) VALUES (
+    'Vražda 123',
+    '50.149N, 40.5E'
+);
