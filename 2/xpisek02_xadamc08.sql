@@ -46,6 +46,7 @@ CREATE TABLE MEMBER_TABLE (
     FAMILY_ID INT NOT NULL,
     FOREIGN KEY (ID) REFERENCES PERSON (ID) --on delete něco
  --FK Kriminální operace je možná řešená tabulkou dole
+ --generalizace/specializace je zde udelána pomocí FK osoby jakožto atributu člena, ktery odkazuje na osobu odpovídající danému členovi. Tímto je dodržen vztah "is a" mezi členem a osobou. Obdobně je udělán vztah mezi vraždou a kriminální operací.
 );
 
 CREATE TABLE FAMILY (
