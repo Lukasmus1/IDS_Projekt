@@ -347,17 +347,28 @@ INSERT INTO OPERATION_TERRITORY(
 
 --dva dotazy využívající spojení dvou tabulek DONE
 --jeden využívající spojení tří tabulek DONE
---dva dotazy s klauzulí GROUP BY a agregační funkcí
---jeden dotaz obsahující predikát EXISTS
+--dva dotazy s klauzulí GROUP BY a agregační funkcí 
+--jeden dotaz obsahující predikát EXISTS DONE ALE IDK
 --jeden dotaz s predikátem IN s vnořeným selectem (nikoliv IN s množinou konstantních dat)
---TJ MINIMÁLNĚ 7x SELECT
+
 --U každého z dotazů musí být (v komentáři SQL kódu) popsáno srozumitelně, jaká data hledá daný dotaz
 
 --Počet setkání pro dona s názvem 'Velkej Meeting Boss'
 SELECT COUNT(*) AS Pocet_Setkani FROM MEETING NATURAL JOIN DON WHERE NAME = 'Velkej Meeting Boss';
 
---Počet objednávek vytvořených DONem "Velkej boss"
+--Počet objednávek vytvořených DONem 'Velkej boss'
 SELECT COUNT(*) AS Pocet_Objednavek FROM ORDER_TABLE NATURAL JOIN DON WHERE NAME = 'Velkej Boss';
 
---Počet objednávek na vraždu vytvořeno DONem "Velkej Vrah"
+--Počet objednávek na vraždu vytvořeno DONem 'Velkej Vrah'
 SELECT COUNT(*) AS Pocet_Objednavek FROM MURDER NATURAL JOIN DON NATURAL JOIN ORDER_TABLE WHERE NAME = 'Velkej Vrah';
+
+--Počet členů s autorizací 'Velkej čavo'
+SELECT COUNT(ID) FROM MEMBER_TABLE GROUP BY AUTHORIZATION HAVING AUTHORIZATION LIKE 'Velkej čavo'; --nejsem si jistý
+
+--Ještě jedn GROUP BY
+
+--Vybrat ???
+SELECT TERRITORY_ID FROM MEETING WHERE EXISTS(SELECT GPS FROM TERRITORY WHERE MEETING.TERRITORY_ID = TERRITORY.GPS AND AREA > 2000);
+
+
+--Dotaz s IN a vnořeným selectem
