@@ -36,7 +36,9 @@ DROP TABLE ALIANCE CASCADE CONSTRAINTS;
 CREATE TABLE PERSON (
     PERSON_ID INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
     NAME VARCHAR(100),
-    AGE NUMBER(3)
+    AGE NUMBER(3),
+ --Toto je zde pouze pro předvedení triggeru
+    HEARTATTACK_CHANCE NUMBER CHECK (HEARTATTACK_CHANCE BETWEEN 0 AND 1)
 );
 
 --Generalizace/specializace je zde udělána pomocí FK PERSON jakožto atributu MEMBER_TABLE, ktery odkazuje na PERSON odpovídající dané MEMBER_TABLE. Tímto je dodržen vztah "is a" mezi MEMBER_TABLE a PERSON. Obdobně je udělán vztah mezi MURDER a OPERATION.
@@ -76,6 +78,7 @@ CREATE TABLE MURDER (
 CREATE TABLE ORDER_TABLE (
     ORDER_ID INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
     ORDER_NAME VARCHAR(50),
+    DON_ID INT,
     VICTIM INT,
     MURDER VARCHAR(50)
 );
@@ -84,8 +87,7 @@ CREATE TABLE DON (
     DON_ID INT GENERATED AS IDENTITY NOT NULL PRIMARY KEY,
     NAME VARCHAR(100),
     AGE NUMBER(3),
-    SHOE_SIZE NUMBER(3),
-    MURDER_ORDER INT DEFAULT NULL
+    SHOE_SIZE NUMBER(3)
 );
 
 CREATE TABLE MEETING (
@@ -160,31 +162,35 @@ ALTER TABLE OPERATION ADD CONSTRAINT OWNING_FAMILY_FK_OP FOREIGN KEY (OWNING_FAM
 
 ALTER TABLE MURDER ADD CONSTRAINT VICTIM_FK FOREIGN KEY (VICTIM) REFERENCES PERSON (PERSON_ID) ON DELETE CASCADE;
 
-ALTER TABLE ORDER_TABLE ADD CONSTRAINT VICTIM_FK_ORD_TAB FOREIGN KEY (VICTIM) REFERENCES PERSON (PERSON_ID) ON DELETE CASCADE ADD CONSTRAINT MURDER_FK FOREIGN KEY (MURDER) REFERENCES MURDER (MURDER_NAME) ON DELETE SET NULL;
-
-ALTER TABLE DON ADD CONSTRAINT MURDER_ORDER_FK FOREIGN KEY (MURDER_ORDER) REFERENCES ORDER_TABLE (ORDER_ID) ON DELETE SET NULL;
+ALTER TABLE ORDER_TABLE ADD CONSTRAINT VICTIM_FK_ORD_TAB FOREIGN KEY (VICTIM) REFERENCES PERSON (PERSON_ID) ON DELETE CASCADE ADD CONSTRAINT MURDER_FK FOREIGN KEY (MURDER) REFERENCES MURDER (MURDER_NAME) ON DELETE SET NULL ADD CONSTRAINT DON_ID FOREIGN KEY (DON_ID) REFERENCES DON (DON_ID);
 
 ALTER TABLE MEETING ADD CONSTRAINT TERRITORY_FK_MEET FOREIGN KEY (TERRITORY_ID) REFERENCES TERRITORY (GPS) ON DELETE CASCADE;
 
 ALTER TABLE TERRITORY ADD CONSTRAINT OWNING_FAMILY_FK_TER FOREIGN KEY (FAMILY_ID) REFERENCES FAMILY (FAMILY_ID) ON DELETE SET NULL;
 
 --=================================== TRIGGER =========================================
-/*
-    CREATE OR REPLACE TRIGGER *jmeno*
-    
-    BEGIN
-    
-    END;
- 
-    CREATE OR REPLACE TRIGGER *jmeno2*
-    
-    BEGIN
-    
-    END;
-*/
+
+-- Automaticky vytvoří rodinu pro dona při vytvoření nového dona
+CREATE OR REPLACE TRIGGER ADD_FAMILY_TO_DON AFTER
+    INSERT ON DON FOR EACH ROW
+BEGIN
+    INSERT INTO FAMILY (
+        DON_ID
+    ) VALUES (
+        :NEW.DON_ID
+    );
+END;
+
+-- Automaticky vypočítá šanci na dostání infakrtu a omezí její výsledek na maximálně 1
+CREATE OR REPLACE TRIGGER CALCULATE_HEARTATTACK_CHANCE
+    BEFORE INSERT OR UPDATE OF AGE ON PERSON
+    FOR EACH ROW
+BEGIN
+    :NEW.HEARTATTACK_CHANCE := LEAST(:NEW.AGE / 100, 1);
+END;
+
 
 --=================================== NAPLNIT DATY =========================================
-
 INSERT INTO PERSON (
     NAME,
     AGE
@@ -209,6 +215,15 @@ INSERT INTO PERSON (
     37
 );
 
+--Ukázka že trigger funguje pro věk > 100
+INSERT INTO PERSON (
+    NAME,
+    AGE
+) VALUES (
+    'Mr. Old',
+    101
+);
+
 INSERT INTO DON (
     NAME,
     AGE,
@@ -231,15 +246,11 @@ INSERT INTO DON (
 
 INSERT INTO ORDER_TABLE (
     ORDER_NAME,
+    DON_ID,
     VICTIM
 ) VALUES (
-    'Phoenix',
-    1
-);
-
-INSERT INTO FAMILY(
-    DON_ID
-) VALUES (
+    'Mr. Member',
+    1,
     1
 );
 
@@ -434,41 +445,119 @@ INSERT INTO OPERATION_TERRITORY(
 
 --=================================== 4. Úkol ============================================
 --=================================== PROCEDURY ======================================
-/* CREATE OR REPLACE PROCEDURE *jmeno*
+
+-- Procedura vypíše procento členů s danou autorizací v dané rodině
+CREATE OR REPLACE PROCEDURE percentage_of_members_by_authorization (
+        v_authorization IN VARCHAR2,
+        v_family_id IN NUMBER
+    )
 AS
-    *proměnné*
+    "pocet" NUMBER;
+    "vysledek" NUMBER;
+    "pocet_v_rodine" NUMBER;
 BEGIN
-    *akce*
+
+    SELECT COUNT(*) INTO "pocet_v_rodine" FROM FAMILY NATURAL JOIN MEMBER_TABLE WHERE FAMILY_ID = v_family_id;
+
+    IF v_authorization = 'Velkej čavo' THEN
+        SELECT
+            COUNT(*)
+        INTO
+            "pocet"
+        FROM
+            MEMBER_TABLE
+        WHERE
+            AUTHORIZATION = 'Velkej čavo';
+    END IF;
+    IF v_authorization = 'Střední čavo' THEN
+        SELECT
+            COUNT(*)
+        INTO
+            "pocet"
+        FROM
+            MEMBER_TABLE
+        WHERE
+            AUTHORIZATION = 'Velkej čavo';
+    END IF;
+    IF v_authorization = 'Malej čavo' THEN
+        SELECT
+            COUNT(*)
+        INTO
+            "pocet"
+        FROM
+            MEMBER_TABLE
+        WHERE
+            AUTHORIZATION = 'Malej čavo';
+    END IF;
+
+    "vysledek" := "pocet" / "pocet_v_rodine";
+   
+    DBMS_OUTPUT.put_line('Podíl členů s autorizací ' || v_authorization || ' v rodině ' || v_family_id || ' je ' || "vysledek" * 100 || '%');
+
+    EXCEPTION WHEN ZERO_DIVIDE THEN
+    BEGIN
+        DBMS_OUTPUT.put_line('Nulový počet členů v rodině');
+    END;
+
 END;
 
-   
-BEGIN *jmeno*; END; --spuštění procedury
-*/
+-- Spuštění procedury
+BEGIN percentage_of_members_by_authorization('Velkej čavo', 1); END;
 
 
+
+CREATE OR REPLACE PROCEDURE murder_tool(v_family_id IN FAMILY.FAMILY_ID%TYPE, v_don_id IN DON.DON_ID%TYPE)
+AS
+    CURSOR member_cursor IS
+        SELECT PERSON_ID FROM MEMBER_TABLE NATURAL JOIN PERSON WHERE FAMILY_ID = v_family_id;
+    member_rec member_cursor%ROWTYPE;
+    v_name PERSON.NAME%TYPE;
+BEGIN
+    OPEN member_cursor;
+    LOOP
+        FETCH member_cursor INTO member_rec;
+        EXIT WHEN member_cursor%NOTFOUND;
+        SELECT NAME INTO v_name FROM PERSON WHERE PERSON_ID = member_rec.PERSON_ID;
+        INSERT INTO ORDER_TABLE (VICTIM, ORDER_NAME, DON_ID) VALUES (member_rec.PERSON_ID, v_name, v_don_id);
+    END LOOP;
+    CLOSE member_cursor;
+END;
+
+
+BEGIN murder_tool(1,1); END; --spuštění procedury
 
 --=================================== EXPLAIN PLAN ======================================
-
-
-
 --=================================== MATERIALIZED VIEW ======================================
-
-
-
-
 --=================================== DALŠÍ ČLEN ======================================
 GRANT ALL ON "MEMBER_OPERATION" TO "XADAMC08";
+
 GRANT ALL ON "ALIANCE_OPERATION" TO "XADAMC08";
+
 GRANT ALL ON "ALIANCE_FAMILY" TO "XADAMC08";
+
 GRANT ALL ON "OPERATION_TERRITORY" TO "XADAMC08";
+
 GRANT ALL ON "MEETING_ATTENDEE" TO "XADAMC08";
+
 GRANT ALL ON "MEETING" TO "XADAMC08";
+
 GRANT ALL ON "DON" TO "XADAMC08";
+
 GRANT ALL ON "ORDER_TABLE" TO "XADAMC08";
+
 GRANT ALL ON "MURDER" TO "XADAMC08";
+
 GRANT ALL ON "MEMBER_TABLE" TO "XADAMC08";
+
 GRANT ALL ON "TERRITORY" TO "XADAMC08";
+
 GRANT ALL ON "FAMILY" TO "XADAMC08";
+
 GRANT ALL ON "OPERATION" TO "XADAMC08";
+
 GRANT ALL ON "PERSON" TO "XADAMC08";
+
 GRANT ALL ON "ALIANCE" TO "XADAMC08";
+
+GRANT EXECUTE ON percentage_of_members_by_authorization TO "XADAMC08";
+GRANT EXECUTE ON murder_tool TO "XADAMC08";
