@@ -168,6 +168,21 @@ ALTER TABLE MEETING ADD CONSTRAINT TERRITORY_FK_MEET FOREIGN KEY (TERRITORY_ID) 
 
 ALTER TABLE TERRITORY ADD CONSTRAINT OWNING_FAMILY_FK_TER FOREIGN KEY (FAMILY_ID) REFERENCES FAMILY (FAMILY_ID) ON DELETE SET NULL;
 
+--=================================== TRIGGER =========================================
+/*
+    CREATE OR REPLACE TRIGGER *jmeno*
+    
+    BEGIN
+    
+    END;
+ 
+    CREATE OR REPLACE TRIGGER *jmeno2*
+    
+    BEGIN
+    
+    END;
+*/
+
 --=================================== NAPLNIT DATY =========================================
 
 INSERT INTO PERSON (
@@ -417,4 +432,43 @@ INSERT INTO OPERATION_TERRITORY(
     '50.234N, 43.2E'
 );
 
---=================================== 4. Úkol =========================================
+--=================================== 4. Úkol ============================================
+--=================================== PROCEDURY ======================================
+/* CREATE OR REPLACE PROCEDURE *jmeno*
+AS
+    *proměnné*
+BEGIN
+    *akce*
+END;
+
+   
+BEGIN *jmeno*; END; --spuštění procedury
+*/
+
+
+
+--=================================== EXPLAIN PLAN ======================================
+
+
+
+--=================================== MATERIALIZED VIEW ======================================
+
+
+
+
+--=================================== DALŠÍ ČLEN ======================================
+GRANT ALL ON "MEMBER_OPERATION" TO "XADAMC08";
+GRANT ALL ON "ALIANCE_OPERATION" TO "XADAMC08";
+GRANT ALL ON "ALIANCE_FAMILY" TO "XADAMC08";
+GRANT ALL ON "OPERATION_TERRITORY" TO "XADAMC08";
+GRANT ALL ON "MEETING_ATTENDEE" TO "XADAMC08";
+GRANT ALL ON "MEETING" TO "XADAMC08";
+GRANT ALL ON "DON" TO "XADAMC08";
+GRANT ALL ON "ORDER_TABLE" TO "XADAMC08";
+GRANT ALL ON "MURDER" TO "XADAMC08";
+GRANT ALL ON "MEMBER_TABLE" TO "XADAMC08";
+GRANT ALL ON "TERRITORY" TO "XADAMC08";
+GRANT ALL ON "FAMILY" TO "XADAMC08";
+GRANT ALL ON "OPERATION" TO "XADAMC08";
+GRANT ALL ON "PERSON" TO "XADAMC08";
+GRANT ALL ON "ALIANCE" TO "XADAMC08";
