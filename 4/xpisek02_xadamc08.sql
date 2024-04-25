@@ -31,6 +31,8 @@ DROP TABLE PERSON CASCADE CONSTRAINTS;
 
 DROP TABLE ALIANCE CASCADE CONSTRAINTS;
 
+DROP MATERIALIZED VIEW "family_user_count";
+
 --=================================== CREATE TABLE =========================================
 
 CREATE TABLE PERSON (
@@ -443,7 +445,6 @@ INSERT INTO OPERATION_TERRITORY(
     '50.234N, 43.2E'
 );
 
---=================================== 4. Úkol ============================================
 --=================================== PROCEDURY ======================================
 
 -- Procedura vypíše procento členů s danou autorizací v dané rodině
@@ -505,7 +506,7 @@ END;
 BEGIN percentage_of_members_by_authorization('Velkej čavo', 1); END;
 
 
-
+-- Vytvoření objednávky na vraždu všech členů rodiny
 CREATE OR REPLACE PROCEDURE murder_tool(v_family_id IN FAMILY.FAMILY_ID%TYPE, v_don_id IN DON.DON_ID%TYPE)
 AS
     CURSOR member_cursor IS
@@ -523,11 +524,31 @@ BEGIN
     CLOSE member_cursor;
 END;
 
-
+-- Spuštění procedury
 BEGIN murder_tool(1,1); END; --spuštění procedury
 
 --=================================== EXPLAIN PLAN ======================================
+    
+-- Kolik členů s autorizací "Velkej čavo" je v dané rodině, která vlastní operaci typu "Narkotika"
+CREATE INDEX idx_auth_family ON MEMBER_TABLE(AUTHORIZATION, FAMILY_ID);
+
+EXPLAIN PLAN FOR
+SELECT COUNT(*)
+FROM MEMBER_TABLE
+         JOIN OPERATION ON MEMBER_TABLE.FAMILY_ID = OPERATION.OWNING_FAMILY
+WHERE FAMILY_ID = 1 AND OP_TYPE = 'Narkotika'
+GROUP BY AUTHORIZATION;
+
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+    
+    
 --=================================== MATERIALIZED VIEW ======================================
+-- Materializovaný pohled na věechny rodiny a počet jejich členů
+CREATE OR REPLACE MATERIALIZED VIEW "family_user_count" AS
+SELECT FAMILY_ID, COUNT(MEMBER_ID)
+FROM FAMILY NATURAL JOIN MEMBER_TABLE
+GROUP BY FAMILY_ID;
+    
 --=================================== DALŠÍ ČLEN ======================================
 GRANT ALL ON "MEMBER_OPERATION" TO "XADAMC08";
 
@@ -561,3 +582,5 @@ GRANT ALL ON "ALIANCE" TO "XADAMC08";
 
 GRANT EXECUTE ON percentage_of_members_by_authorization TO "XADAMC08";
 GRANT EXECUTE ON murder_tool TO "XADAMC08";
+
+GRANT ALL ON "family_user_count" TO "XADAMC08";
