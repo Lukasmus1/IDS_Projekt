@@ -1,3 +1,5 @@
-# PL/SQL
+#Authors:
+##XPISEK02
+##XADAMC08
 
-Created basic database scripts using PL/SQL
+Project for BUT FIT. Created a bunch of SQL scripts. 
